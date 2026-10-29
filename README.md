@@ -26,4 +26,4 @@ Diadaptasi dari:
 Hasil prediksi bersifat komputasional (hipotesis), bukan bukti klinis, dan memerlukan validasi eksperimen.
 
 ## Lisensi
-Belum ditentukan oleh pemilik repositori.
+[MIT](LICENSE)
