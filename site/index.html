@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Computational Screening untuk SARS-CoV-2 Mpro — Research Whitepaper</title>
+  <meta name="description" content="Computational Screening Menggunakan Kombinasi Ligand-Based Machine Learning dan Molecular Docking untuk Repurposing Antivirus Targeting SARS-CoV-2 Main Protease. Publikasi DARU J Pharm Sci (2024).">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&display=swap" rel="stylesheet">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <style>
+    :root {
+      /* McKinsey / Executive Editorial Intelligence Palette */
+      --paper: #F8F9FA;
+      --paper-card: #FFFFFF;
+      --paper-subtle: #F1F4F8;
+      --ink: #0A192F;           /* Deep Navy / Charcoal Black */
+      --ink-secondary: #334155; /* Slate Body */
+      --ink-muted: #64748B;     /* Muted Grey Caption */
+      --mckinsey-blue: #002B49; /* Heritage McKinsey Navy */
+      --accent-blue: #055C9D;   /* Classic Cobalt Accent */
+      --accent-light: #EBF3FA;  /* Soft Blue Tint */
+      --amber: #C07D2B;         /* Restrained Ochre / Amber */
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+      
+      --font-serif: 'Newsreader', Georgia, Cambria, serif;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      overflow-x: clip;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Progress Bar */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 3px;
+      background: var(--accent-blue);
+      z-index: 1000;
+      transition: width 0.1s linear;
+    }
+
+    /* Navigation */
+    #main-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 500;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(248, 249, 250, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mckinsey-blue);
+      text-decoration: none;
+    }
+    .nav-sections {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .nav-dot {
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ink-muted);
+      opacity: 0.35;
+      transition: all 0.3s ease;
+    }
+    .nav-dot.active {
+      background: var(--accent-blue);
+      transform: scale(1.4);
+      opacity: 1;
+    }
+
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+
+    /* HERO SECTION */
+    #hero {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      text-align: left;
+      position: relative;
+      padding: 140px 0 60px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-badge {
+      display: inline-block;
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 18px;
+      border-left: 2px solid var(--accent-blue);
+      padding-left: 10px;
+    }
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2.4rem, 4.6vw, 4.2rem);
+      font-weight: 600;
+      line-height: 1.15;
+      max-width: 24ch;
+      margin-bottom: 24px;
+      letter-spacing: -0.02em;
+      color: var(--mckinsey-blue);
+    }
+    .hero-authors {
+      font-size: 1.1rem;
+      color: var(--ink);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .hero-venue {
+      font-size: 0.95rem;
+      color: var(--ink-muted);
+      margin-bottom: 48px;
+    }
+
+    /* Executive KPI Grid */
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      width: 100%;
+      margin: 0 0 20px;
+    }
+    .hero-stat {
+      background: var(--paper-card);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--mckinsey-blue);
+      padding: 24px 20px;
+    }
+    .stat-num {
+      font-family: var(--font-serif);
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--mckinsey-blue);
+      display: block;
+      line-height: 1;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* SIDECAR 2-KOLOM */
+    #sidecar-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: start;
+      position: relative;
+      margin-top: 40px;
+    }
+
+    /* Kolom Kiri: Narasi */
+    #text-column {
+      padding-bottom: 30vh;
+    }
+    .scroll-section {
+      padding: 48px 0;
+      margin: 40px 0 100px;
+      border-left: 1px solid var(--border-strong);
+      padding-left: 36px;
+      transition: all 0.4s ease;
+      opacity: 0.35;
+      transform: translateY(10px);
+    }
+    .scroll-section.active {
+      opacity: 1;
+      transform: none;
+      border-left: 2px solid var(--accent-blue);
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 12px;
+    }
+    .scroll-section h2 {
+      font-family: var(--font-serif);
+      font-size: 2.1rem;
+      font-weight: 600;
+      line-height: 1.25;
+      margin-bottom: 18px;
+      color: var(--mckinsey-blue);
+      letter-spacing: -0.01em;
+    }
+    .scroll-section p {
+      color: var(--ink-secondary);
+      font-size: 1.05rem;
+      margin-bottom: 16px;
+      line-height: 1.75;
+    }
+    .scroll-section p.lead {
+      color: var(--ink);
+      font-size: 1.2rem;
+      font-weight: 500;
+      line-height: 1.6;
+    }
+    .callout-box {
+      background: var(--paper-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--mckinsey-blue);
+      padding: 18px 22px;
+      margin: 24px 0;
+      font-size: 0.95rem;
+      color: var(--ink);
+    }
+    .taxonomy-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .taxonomy-item {
+      background: var(--paper-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    /* Kolom Kanan: Pinned Visual Stage */
+    #viz-column {
+      position: sticky;
+      top: 104px;
+      height: calc(100vh - 140px);
+      min-height: 580px;
+      background: var(--paper-card);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 30px rgba(10, 25, 47, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .viz-header {
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      background: var(--paper);
+    }
+    .viz-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+    }
+    .viz-stage {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+    }
+    .viz-panel {
+      position: absolute;
+      inset: 0;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow-y: auto;
+      opacity: 0;
+      transform: scale(0.98);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      pointer-events: none;
+    }
+    .viz-panel.active {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+    .viz-kicker {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      margin-bottom: 4px;
+    }
+    .viz-title {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--mckinsey-blue);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .viz-desc {
+      color: var(--ink-secondary);
+      font-size: 0.88rem;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    /* Sub-Tab Navigation for Toggle View */
+    .view-toggle-bar {
+      display: flex;
+      gap: 6px;
+      background: var(--paper-subtle);
+      padding: 4px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+    }
+    .view-toggle-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    .view-toggle-btn.active {
+      background: #FFFFFF;
+      color: var(--mckinsey-blue);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    /* Toggleable Containers */
+    .toggle-view-chart, .toggle-view-fig {
+      width: 100%;
+      transition: opacity 0.3s ease;
+    }
+    .toggle-view-chart.hidden, .toggle-view-fig.hidden {
+      display: none;
+    }
+
+    /* Visual Media Frame */
+    .fig-frame {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--paper-subtle);
+      padding: 8px;
+      margin: 4px 0 10px;
+    }
+    .fig-frame img {
+      width: 100%;
+      height: auto;
+      max-height: 250px;
+      object-fit: contain;
+      display: block;
+      background: #FFFFFF;
+    }
+    .fig-caption {
+      font-size: 0.74rem;
+      color: var(--ink-muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    /* Executive Big Stat Display */
+    .metric-hero {
+      font-family: var(--font-serif);
+      font-size: clamp(2.6rem, 3.8vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--mckinsey-blue);
+      margin-bottom: 6px;
+      letter-spacing: -0.03em;
+    }
+    .metric-hero span {
+      font-size: 1.2rem;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      color: var(--accent-blue);
+      margin-left: 4px;
+    }
+
+    /* Methodology 4-Card Flow */
+    .method-flow {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .method-card {
+      background: var(--paper-subtle);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      border-radius: 4px;
+    }
+    .method-card b {
+      display: block;
+      color: var(--mckinsey-blue);
+      font-size: 0.82rem;
+      margin-bottom: 2px;
+    }
+    .method-card span {
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      line-height: 1.35;
+      display: block;
+    }
+
+    /* Docking Energy Horizontal Chart */
+    .docking-row {
+      margin-bottom: 12px;
+    }
+    .docking-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+    .docking-meta .val {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      color: var(--mckinsey-blue);
+    }
+    .docking-track {
+      height: 8px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .docking-fill {
+      height: 100%;
+      background: var(--mckinsey-blue);
+      width: 0%;
+      transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .docking-fill.best {
+      background: var(--accent-blue);
+    }
+    .docking-fill.native {
+      background: var(--amber);
+    }
+
+    /* Sitasi & Footer */
+    .cite-block {
+      background: var(--paper-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--mckinsey-blue);
+      padding: 24px;
+      margin-top: 20px;
+    }
+    .cite-block .title {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--mckinsey-blue);
+      margin-bottom: 8px;
+    }
+    .cite-block .meta {
+      font-size: 0.92rem;
+      color: var(--ink-secondary);
+      margin-bottom: 20px;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid var(--border-strong);
+      background: var(--paper-card);
+      color: var(--ink);
+      transition: all 0.2s ease;
+    }
+    .btn.primary {
+      background: var(--mckinsey-blue);
+      color: #FFFFFF;
+      border-color: var(--mckinsey-blue);
+    }
+    .btn.primary:hover {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+    .btn:hover {
+      background: var(--paper-subtle);
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 60px 0 40px;
+      color: var(--ink-muted);
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 60px;
+      background: var(--paper-subtle);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      #main-nav { padding: 14px 20px; }
+      #hero { padding-top: 110px; }
+      .hero-stats { grid-template-columns: repeat(2, 1fr); }
+      #sidecar-wrapper { grid-template-columns: 1fr; gap: 24px; }
+      #viz-column {
+        position: sticky;
+        top: 68px;
+        height: 390px;
+        min-height: 350px;
+        z-index: 200;
+      }
+      .scroll-section {
+        min-height: 65vh;
+        margin: 20px 0;
+        padding-left: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="progress-bar"></div>
+
+  <nav id="main-nav">
+    <a href="#" class="nav-brand">
+      SARS-CoV-2 Mpro · Research Brief
+    </a>
+    <div class="nav-sections">
+      <a href="#sec-intro" class="nav-dot active" title="Urgensi Target"></a>
+      <a href="#sec-pipeline" class="nav-dot" title="Metodologi"></a>
+      <a href="#sec-results" class="nav-dot" title="Hasil Skrining"></a>
+      <a href="#sec-docking" class="nav-dot" title="Molecular Docking"></a>
+      <a href="#sec-ppi" class="nav-dot" title="Jaringan PPI"></a>
+      <a href="#sec-conclusion" class="nav-dot" title="Kesimpulan"></a>
+    </div>
+  </nav>
+
+  <header id="hero" class="wrap">
+    <div class="hero-badge">Original Research Publication · Executive Briefing</div>
+    <h1 class="hero-title">Computational Screening Antivirus untuk Repurposing SARS-CoV-2 Main Protease</h1>
+    <p class="hero-authors">Gusti Putu Wahyunanda Crista Yuda · Naufa Hanif · Adam Hermawan</p>
+    <p class="hero-venue">Dipublikasikan pada <strong>DARU Journal of Pharmaceutical Sciences</strong> (Springer Nature, 2024) · PMID: 37907683</p>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="stat-num">10.692</span>
+        <span class="stat-label">Molekul DrugBank</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-num">3.166</span>
+        <span class="stat-label">Inhibitor Tersaring</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-num">0.95</span>
+        <span class="stat-label">Keyakinan Model RF</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-num">−13.64</span>
+        <span class="stat-label">CCX-140 (kcal/mol)</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="sidecar-wrapper">
+
+      <!-- NARRATIVE (Kiri) -->
+      <div id="text-column">
+
+        <section id="sec-intro" class="scroll-section active" data-step="intro">
+          <div class="section-label">01 · Konteks & Target Biologis</div>
+          <h2>Membidik Enzim Replikasi Utama Virus</h2>
+          <p class="lead">Dalam penanggulangan pandemi atau varian novel SARS-CoV-2, strategi penemuan obat dari awal membutuhkan waktu 10–15 tahun. Repurposing molekul yang telah teruji klinis merupakan opsi paling akseleratif dan berisiko rendah.</p>
+          <p>Studi ini menargetkan <strong>Main Protease (Mpro/3CLpro, NSP5)</strong> SARS-CoV-2 pada kode kristalografi resolusi tinggi <strong>PDB ID: 7D1M (1.35 Å)</strong>. Mpro mutlak dibutuhkan untuk memecah poliprotein virus menjadi protein fungsional.</p>
+          <div class="callout-box">
+            <strong>Keunggulan Target:</strong> Sekuens Mpro bersifat sangat konservatif dan tidak memiliki homolog fungsional pada protease tubuh manusia, memitigasi risiko efek samping toksik secara biologis.
+          </div>
+        </section>
+
+        <section id="sec-pipeline" class="scroll-section" data-step="pipeline">
+          <div class="section-label">02 · Arsitektur Riset</div>
+          <h2>Penyaringan Dua Lapis: LBVS Machine Learning & Molecular Docking</h2>
+          <p class="lead">Untuk menyaring 10.692 obat di DrugBank, penelitian ini menggabungkan efisiensi komputasi kecerdasan buatan dengan presisi kalkulasi afinitas fisikokimia.</p>
+          <p>Pipeline dibangun di atas platform <strong>KNIME Analytics</strong> melalui 4 tahap validasi sekuensial:</p>
+          
+          <div class="method-flow">
+            <div class="method-card">
+              <b>1. Ligand-Based Screening</b>
+              <span>Fingerprint MACCS 166-bit + Random Forest untuk menyaring 10.692 obat.</span>
+            </div>
+            <div class="method-card">
+              <b>2. ADMET & Drug-Likeness</b>
+              <span>Filtrasi kepatuhan aturan Lipinski dan prediksi farmakokinetika in silico.</span>
+            </div>
+            <div class="method-card">
+              <b>3. Molecular Docking</b>
+              <span>Kalkulasi energi bebas ikatan (ΔG) pada situs aktif katalitik His41/Cys145.</span>
+            </div>
+            <div class="method-card">
+              <b>4. BioGRID PPI Network</b>
+              <span>Pemetaan interaksi regulasi Mpro dengan protein inang manusia.</span>
+            </div>
+          </div>
+        </section>
+
+        <section id="sec-results" class="scroll-section" data-step="results">
+          <div class="section-label">03 · Temuan Skrining Cepat</div>
+          <h2>Kinerja Random Forest & 22 Kandidat Unggulan</h2>
+          <p class="lead">Dari 10.692 senyawa, model Random Forest (RF) menghasilkan 3.166 molekul berpotensi inhibisi terhadap Mpro, melampaui algoritma SVM dan ANN pada evaluasi kurva ROC.</p>
+          <p>Skor keyakinan tertinggi mencapai <strong>0.95</strong> yang dicapai oleh molekul <em>bromo-7-nitroindazole</em>. Dari seluruh hasil skrining, terpilih <strong>22 kandidat teratas</strong> untuk dikarakterisasi lebih mendalam.</p>
+          <div class="callout-box">
+            <strong>Drug-Likeness:</strong> Uji aturan Lipinski (Ro5) menunjukkan 21 dari 22 kandidat memenuhi syarat penuh bioavailabilitas oral; hanya satu senyawa yang memiliki dua pelanggaran.
+          </div>
+        </section>
+
+        <section id="sec-docking" class="scroll-section" data-step="docking">
+          <div class="section-label">04 · Afinitas Molekuler</div>
+          <h2>CCX-140 Mengungguli Ligan Native GC-376</h2>
+          <p class="lead">Simulasi molecular docking membuktikan bahwa 5 senyawa kandidat memiliki energi ikatan yang secara termodinamika lebih stabil dan negatif dibanding ligan native Mpro GC-376 (−12.25 kcal/mol).</p>
+          <p>Senyawa <strong>CCX-140</strong> mencatatkan skor paling unggul yakni <strong>−13.64 kcal/mol</strong>. Nilai energi yang lebih negatif mengindikasikan interaksi ikatan hidrogen dan hidrofobik yang jauh lebih kokoh pada sisi aktif Mpro.</p>
+          <div class="taxonomy-grid">
+            <div class="taxonomy-item"><strong>CCX-140:</strong> −13.64 kcal/mol</div>
+            <div class="taxonomy-item"><strong>SC-558:</strong> −12.90 kcal/mol</div>
+            <div class="taxonomy-item"><strong>Celecoxib:</strong> −12.60 kcal/mol</div>
+            <div class="taxonomy-item" style="border-color:var(--amber); color:var(--amber);"><strong>GC-376 (Native):</strong> −12.25 kcal/mol</div>
+            <div class="taxonomy-item"><strong>Boceprevir:</strong> −11.40 kcal/mol</div>
+          </div>
+        </section>
+
+        <section id="sec-ppi" class="scroll-section" data-step="ppi">
+          <div class="section-label">05 · Taksonomi Kimiawi</div>
+          <h2>Enam Scaffold Inti & Jaringan Patologi PPI</h2>
+          <p class="lead">Penelitian ini berhasil mengelompokkan enam gugus senyawa kimia yang secara dominan bertanggung jawab atas aktivitas hambatan terhadap protease SARS-CoV-2.</p>
+          <p>Keenam kelas tersebut meliputi: <strong>Benzopyrazole, Azole, Pyrazolopyrimidine, Asam Karboksilat & turunan, Benzena tersubstitusi, serta Diazine</strong>.</p>
+          <p>Analisis interaksi protein-protein (PPI) berbasis BioGRID dan Cytoscape turut mengidentifikasi 4 jalur patologi utama yang berkaitan erat dengan dampak sitotoksik ekspresi NSP5 pada sel inang.</p>
+        </section>
+
+        <section id="sec-conclusion" class="scroll-section" data-step="conclusion">
+          <div class="section-label">06 · Kesimpulan & Rekomendasi</div>
+          <h2>Validasi In Silico Siap Melangkah ke Fase In Vitro</h2>
+          <p class="lead">Kombinasi Machine Learning berbasis ligan dan Molecular Docking terbukti menjadi instrumen efisien dalam menyaring ribuan senyawa obat terdaftar secara terarah.</p>
+          <p>Obat-obat dengan skor docking superior, khususnya <strong>CCX-140</strong>, memiliki bukti komputasional yang cukup kokoh untuk secara rasional dipromosikan ke tahap uji laboratorium basah (in vitro enzyme assay).</p>
+          
+          <div class="cite-block">
+            <div class="title">Computational Screening Using a Combination of Ligand-Based Machine Learning and Molecular Docking Methods for the Repurposing of Antivirals Targeting the SARS-CoV-2 Main Protease</div>
+            <div class="meta">Yuda GPWC, Hanif N, Hermawan A. <em>DARU Journal of Pharmaceutical Sciences</em> 32, 47–65 (2024).</div>
+            <div class="btn-group">
+              <a href="https://pubmed.ncbi.nlm.nih.gov/37907683/" target="_blank" rel="noopener" class="btn primary">PubMed · PMID 37907683 ↗</a>
+              <a href="https://doi.org/10.1007/s40199-023-00484-w" target="_blank" rel="noopener" class="btn">Springer Nature DOI ↗</a>
+              <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11087449/" target="_blank" rel="noopener" class="btn">Free Full Text PMC ↗</a>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- VISUAL STAGE (Kanan) -->
+      <div id="viz-column">
+        <div class="viz-header">
+          <span>Evidence Dashboard</span>
+          <div class="viz-dot"></div>
+        </div>
+
+        <div class="viz-stage">
+
+          <!-- Panel 1: Target Struktur -->
+          <div class="viz-panel active" id="panel-intro">
+            <div class="viz-kicker">Target Biologis</div>
+            <div class="viz-title">SARS-CoV-2 Main Protease</div>
+            <div class="viz-desc">Struktur kristal PDB ID: 7D1M (resolusi 1.35 Å) dengan dyad katalitik esensial His41 dan Cys145.</div>
+            
+            <div class="view-toggle-bar">
+              <button class="view-toggle-btn active" onclick="switchSubView('intro', 'chart')">Skema Struktur</button>
+              <button class="view-toggle-btn" onclick="switchSubView('intro', 'fig')">Figur Asli</button>
+            </div>
+
+            <!-- Chart / Schematic View -->
+            <div class="toggle-view-chart" id="intro-chart">
+              <svg viewBox="0 0 380 200" style="width:100%; height:190px;">
+                <circle cx="190" cy="100" r="64" fill="none" stroke="var(--border-strong)" stroke-width="1.5" stroke-dasharray="4,4"/>
+                <circle cx="190" cy="100" r="42" fill="var(--paper-subtle)" stroke="var(--mckinsey-blue)" stroke-width="2"/>
+                <text x="190" y="105" text-anchor="middle" fill="var(--mckinsey-blue)" font-family="Newsreader, serif" font-size="16" font-weight="700">Mpro (NSP5)</text>
+                
+                <circle cx="150" cy="55" r="7" fill="var(--accent-blue)"/>
+                <line x1="150" y1="55" x2="175" y2="78" stroke="var(--accent-blue)" stroke-width="1.5"/>
+                <text x="135" y="45" fill="var(--ink-secondary)" font-size="11" font-weight="600">His41</text>
+
+                <circle cx="230" cy="55" r="7" fill="var(--accent-blue)"/>
+                <line x1="230" y1="55" x2="205" y2="78" stroke="var(--accent-blue)" stroke-width="1.5"/>
+                <text x="225" y="45" fill="var(--ink-secondary)" font-size="11" font-weight="600">Cys145</text>
+
+                <text x="190" y="185" text-anchor="middle" fill="var(--ink-muted)" font-size="11" font-weight="600">Dyad Katalitik Konservatif</text>
+              </svg>
+            </div>
+
+            <!-- Original Figure View -->
+            <div class="toggle-view-fig hidden" id="intro-fig">
+              <div class="fig-frame">
+                <img src="./assets/fig_abstract.png" alt="Graphical Abstract Mpro Screening Pipeline">
+                <div class="fig-caption"><strong>Graphical Abstract:</strong> Integrasi LBVS Machine Learning dan Molecular Docking terhadap Mpro.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 2: Pipeline ROC -->
+          <div class="viz-panel" id="panel-pipeline">
+            <div class="viz-kicker">Alur Komputasi</div>
+            <div class="viz-title">Hierarki Penapisan Senyawa</div>
+            <div class="viz-desc">Penyaringan bertingkat menyaring 10.692 molekul menjadi 5 kandidat docking unggulan.</div>
+            
+            <div class="view-toggle-bar">
+              <button class="view-toggle-btn active" onclick="switchSubView('pipeline', 'chart')">Funnel Filter</button>
+              <button class="view-toggle-btn" onclick="switchSubView('pipeline', 'fig')">Fig 1. Kurva ROC</button>
+            </div>
+
+            <!-- Chart View -->
+            <div class="toggle-view-chart" id="pipeline-chart">
+              <svg viewBox="0 0 360 190" style="width:100%; height:180px;">
+                <polygon points="30,10 330,10 285,50 75,50" fill="#EBF3FA" stroke="var(--accent-blue)" stroke-width="1.2"/>
+                <text x="180" y="34" text-anchor="middle" fill="var(--mckinsey-blue)" font-size="12" font-weight="600">10.692 Obat DrugBank</text>
+                
+                <polygon points="75,55 285,55 245,95 115,95" fill="#E2E8F0" stroke="var(--mckinsey-blue)" stroke-width="1.2"/>
+                <text x="180" y="79" text-anchor="middle" fill="var(--mckinsey-blue)" font-size="12" font-weight="600">3.166 Inhibitor (Model RF)</text>
+                
+                <polygon points="115,100 245,100 215,140 145,140" fill="#FEF3C7" stroke="var(--amber)" stroke-width="1.2"/>
+                <text x="180" y="124" text-anchor="middle" fill="#92400E" font-size="11" font-weight="600">22 ADMET / Drug-likeness</text>
+                
+                <polygon points="145,145 215,145 200,180 160,180" fill="#002B49" stroke="var(--mckinsey-blue)" stroke-width="1.2"/>
+                <text x="180" y="167" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="700">5 Top Docking</text>
+              </svg>
+            </div>
+
+            <!-- Original Figure View -->
+            <div class="toggle-view-fig hidden" id="pipeline-fig">
+              <div class="fig-frame">
+                <img src="./assets/fig1_roc.png" alt="Fig 1. Kurva ROC Fingerprint MACCS">
+                <div class="fig-caption"><strong>Fig. 1:</strong> Kurva ROC algoritma ML fingerprint MACCS. Model RF mengungguli SVM dan ANN.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 3: Results Top Compounds -->
+          <div class="viz-panel" id="panel-results">
+            <div class="viz-kicker">Kinerja Model AI</div>
+            <div class="viz-title">Random Forest (MACCS Fingerprint)</div>
+            <div class="viz-desc">Skor tertinggi dicapai bromo-7-nitroindazole. Menyaring 22 kandidat berbobot tinggi.</div>
+            
+            <div class="view-toggle-bar">
+              <button class="view-toggle-btn active" onclick="switchSubView('results', 'chart')">Metrik Skor</button>
+              <button class="view-toggle-btn" onclick="switchSubView('results', 'fig')">Fig 2. Kandidat Senyawa</button>
+            </div>
+
+            <!-- Chart View -->
+            <div class="toggle-view-chart" id="results-chart">
+              <div class="metric-hero">0.95<span>Confidence</span></div>
+              <div class="method-flow">
+                <div class="method-card">
+                  <b>3.166 Kandidat</b>
+                  <span>Total molekul lolos filter machine learning.</span>
+                </div>
+                <div class="method-card">
+                  <b>95,5% Patuh Ro5</b>
+                  <span>21 dari 22 kandidat lolos aturan Lipinski.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Original Figure View -->
+            <div class="toggle-view-fig hidden" id="results-fig">
+              <div class="fig-frame">
+                <img src="./assets/fig2_compounds.png" alt="Fig 2. Kandidat Senyawa Lolos Skrining">
+                <div class="fig-caption"><strong>Fig. 2:</strong> Daftar kandidat senyawa terbaik hasil penapisan RF (confidence score > 90%).</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 4: Docking 3D & Energi -->
+          <div class="viz-panel" id="panel-docking">
+            <div class="viz-kicker">Afinitas Termodinamika</div>
+            <div class="viz-title">Molecular Docking (kcal/mol)</div>
+            <div class="viz-desc">Energi lebih negatif mencerminkan ikatan yang lebih stabil dan kokoh pada sisi aktif Mpro.</div>
+            
+            <div class="view-toggle-bar">
+              <button class="view-toggle-btn active" onclick="switchSubView('docking', 'chart')">Energy Bars</button>
+              <button class="view-toggle-btn" onclick="switchSubView('docking', 'fig')">Fig 3. Struktur 3D</button>
+            </div>
+
+            <!-- Chart View -->
+            <div class="toggle-view-chart" id="docking-chart">
+              <div class="docking-row">
+                <div class="docking-meta">
+                  <span>CCX-140 (Kandidat Utama)</span>
+                  <span class="val" style="color:var(--accent-blue);">−13.64 kcal/mol</span>
+                </div>
+                <div class="docking-track"><div class="docking-fill best" data-width="100%"></div></div>
+              </div>
+
+              <div class="docking-row">
+                <div class="docking-meta">
+                  <span>SC-558</span>
+                  <span class="val">−12.90 kcal/mol</span>
+                </div>
+                <div class="docking-track"><div class="docking-fill" data-width="94.5%"></div></div>
+              </div>
+
+              <div class="docking-row">
+                <div class="docking-meta">
+                  <span>Celecoxib</span>
+                  <span class="val">−12.60 kcal/mol</span>
+                </div>
+                <div class="docking-track"><div class="docking-fill" data-width="92.3%"></div></div>
+              </div>
+
+              <div class="docking-row">
+                <div class="docking-meta">
+                  <span style="color:var(--amber);">GC-376 (Ligan Native)</span>
+                  <span class="val" style="color:var(--amber);">−12.25 kcal/mol</span>
+                </div>
+                <div class="docking-track"><div class="docking-fill native" data-width="89.8%"></div></div>
+              </div>
+
+              <div class="docking-row">
+                <div class="docking-meta">
+                  <span>Boceprevir (Kontrol Positif)</span>
+                  <span class="val">−11.40 kcal/mol</span>
+                </div>
+                <div class="docking-track"><div class="docking-fill" data-width="83.5%"></div></div>
+              </div>
+            </div>
+
+            <!-- Original Figure View -->
+            <div class="toggle-view-fig hidden" id="docking-fig">
+              <div class="fig-frame">
+                <img src="./assets/fig3_docking_3d.png" alt="Fig 3. Visualisasi Docking Kompleks Mpro">
+                <div class="fig-caption"><strong>Fig. 3:</strong> Interaksi kristal Mpro dengan (A) CCX-140, (B) SC-558, (C) Celecoxib, (D) Boceprevir, (E) SC-236, dan (F) Ligan Native GC-376.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 5: PPI Network -->
+          <div class="viz-panel" id="panel-ppi">
+            <div class="viz-kicker">Sistemik & Jaringan Regulasi</div>
+            <div class="viz-title">6 Scaffold Kimia & Protein Network</div>
+            <div class="viz-desc">Analisis interaksi NSP5/Mpro dengan protein inang dianalisis melalui BIOGRID dan Cytoscape.</div>
+            
+            <div class="view-toggle-bar">
+              <button class="view-toggle-btn active" onclick="switchSubView('ppi', 'chart')">Scaffold Kimia</button>
+              <button class="view-toggle-btn" onclick="switchSubView('ppi', 'fig')">Fig 4. Network PPI</button>
+            </div>
+
+            <!-- Chart View -->
+            <div class="toggle-view-chart" id="ppi-chart">
+              <div class="taxonomy-grid">
+                <div class="taxonomy-item" style="border-color:var(--accent-blue); background:var(--accent-light); color:var(--accent-blue);">Benzopyrazole</div>
+                <div class="taxonomy-item" style="border-color:var(--accent-blue); background:var(--accent-light); color:var(--accent-blue);">Azole</div>
+                <div class="taxonomy-item" style="border-color:var(--accent-blue); background:var(--accent-light); color:var(--accent-blue);">Pyrazolopyrimidine</div>
+                <div class="taxonomy-item">Asam Karboksilat & Derivat</div>
+                <div class="taxonomy-item">Benzena Tersubstitusi</div>
+                <div class="taxonomy-item">Diazine</div>
+              </div>
+              <div style="margin-top:16px; font-size:0.84rem; color:var(--ink-muted);">
+                Pemetaan Cytoscape menyingkap 4 klaster patologi interaksi sel inang.
+              </div>
+            </div>
+
+            <!-- Original Figure View -->
+            <div class="toggle-view-fig hidden" id="ppi-fig">
+              <div class="fig-frame">
+                <img src="./assets/fig4_ppi_network.png" alt="Fig 4. Protein-Protein Interaction Mpro">
+                <div class="fig-caption"><strong>Fig. 4:</strong> (A) Jaringan interaksi PPI NSP5/Mpro. (B) Top 10 protein interaktor dengan derajat Hubba tertinggi.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 6: Verdict & Mekanisme -->
+          <div class="viz-panel" id="panel-conclusion">
+            <div class="viz-kicker">Vonis Ilmiah</div>
+            <div class="viz-title">Kelayakan Maju ke Uji In Vitro</div>
+            <div class="viz-desc">Model usulan aksi senyawa kandidat terhadap RP1a dan kaskade protein inang (PathVisio 3.3.0).</div>
+            
+            <div class="view-toggle-bar">
+              <button class="view-toggle-btn active" onclick="switchSubView('conclusion', 'chart')">Rekomendasi</button>
+              <button class="view-toggle-btn" onclick="switchSubView('conclusion', 'fig')">Fig 5. Pathway</button>
+            </div>
+
+            <!-- Chart View -->
+            <div class="toggle-view-chart" id="conclusion-chart">
+              <div class="metric-hero">Ready<span>Phase</span></div>
+              <div class="callout-box" style="margin:0;">
+                <strong>Rekomendasi:</strong> CCX-140 telah memiliki profil keamanan klinis fase lanjut dan terbukti memiliki afinitas tertinggi (−13.64 kcal/mol) untuk uji in vitro.
+              </div>
+            </div>
+
+            <!-- Original Figure View -->
+            <div class="toggle-view-fig hidden" id="conclusion-fig">
+              <div class="fig-frame">
+                <img src="./assets/fig5_pathway.png" alt="Fig 5. Proposed Molecular Mechanism">
+                <div class="fig-caption"><strong>Fig. 5:</strong> Usulan mekanisme molekuler RP1a dan protein terkait di bawah terapi kandidat obat.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p style="font-weight:600; color:var(--mckinsey-blue);">Original Research · Executive Briefing</p>
+      <p style="margin-top:6px;">Yuda GPWC, Hanif N, Hermawan A. DARU Journal of Pharmaceutical Sciences 32, 47–65 (2024) · PMID 37907683</p>
+    </div>
+  </footer>
+
+  <script>
+    // Sub-view Toggle Function (Chart vs Fig)
+    function switchSubView(sectionKey, viewType) {
+      const panel = document.getElementById('panel-' + sectionKey);
+      if (!panel) return;
+      
+      const chartEl = document.getElementById(sectionKey + '-chart');
+      const figEl = document.getElementById(sectionKey + '-fig');
+      const btns = panel.querySelectorAll('.view-toggle-btn');
+
+      if (viewType === 'chart') {
+        chartEl?.classList.remove('hidden');
+        figEl?.classList.add('hidden');
+        btns[0]?.classList.add('active');
+        btns[1]?.classList.remove('active');
+      } else {
+        chartEl?.classList.add('hidden');
+        figEl?.classList.remove('hidden');
+        btns[0]?.classList.remove('active');
+        btns[1]?.classList.add('active');
+      }
+    }
+
+    // Scroll progress bar
+    window.addEventListener('scroll', () => {
+      const h = document.documentElement;
+      const progress = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+      document.getElementById('progress-bar').style.width = progress + '%';
+    }, { passive: true });
+
+    // IntersectionObserver for sidecar transition
+    const sections = document.querySelectorAll('.scroll-section');
+    const panels = {
+      intro: document.getElementById('panel-intro'),
+      pipeline: document.getElementById('panel-pipeline'),
+      results: document.getElementById('panel-results'),
+      docking: document.getElementById('panel-docking'),
+      ppi: document.getElementById('panel-ppi'),
+      conclusion: document.getElementById('panel-conclusion')
+    };
+    const navDots = document.querySelectorAll('.nav-dot');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const step = entry.target.dataset.step;
+          
+          sections.forEach(s => s.classList.toggle('active', s === entry.target));
+          
+          Object.keys(panels).forEach(k => {
+            const isActive = (k === step);
+            if (panels[k]) {
+              panels[k].classList.toggle('active', isActive);
+              if (isActive && k === 'docking') {
+                panels[k].querySelectorAll('.docking-fill').forEach(bar => {
+                  bar.style.width = bar.dataset.width;
+                });
+              }
+            }
+          });
+
+          const sectionIndex = Array.from(sections).indexOf(entry.target);
+          navDots.forEach((dot, idx) => {
+            dot.classList.toggle('active', idx === sectionIndex);
+          });
+        }
+      });
+    }, {
+      rootMargin: '-20% 0px -40% 0px',
+      threshold: 0.2
+    });
+
+    sections.forEach(sec => observer.observe(sec));
+  </script>
+
+</body>
+</html>
