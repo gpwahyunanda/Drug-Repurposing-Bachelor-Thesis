@@ -22,6 +22,9 @@ Diadaptasi dari:
 2. Impor salah satu berkas `.knwf` (`File > Import KNIME Workflow`).
 3. Jalankan alur; hasil perantara setara dengan berkas `.xlsx` di atas.
 
+## Versi baca (scrollytelling)
+Ringkasan interaktif hasil penelitian ada di folder [`site/`](site/index.html) (halaman statis; diterbitkan lewat Vercel dari repositori ini).
+
 ## Catatan
 Hasil prediksi bersifat komputasional (hipotesis), bukan bukti klinis, dan memerlukan validasi eksperimen.
 
